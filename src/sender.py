@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.io.wavfile as wav
 import signal_processing
 from typing import List
 
@@ -25,5 +26,7 @@ def generate_packets(text: str) -> List[int] :
 
 pack = generate_packets("test")
 
-signal = signal_processing.BPSK_modulation(pack, signal_processing.bpsk_config)
+signal = signal_processing.FSK_modulation(pack, signal_processing.fsk_config) * 1000
+signal = signal.astype(np.int16)
 
+wav.write("sender.wav", 48000, signal)

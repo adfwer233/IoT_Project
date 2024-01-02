@@ -31,4 +31,4 @@ def record(filename: str, duration: float, sample_frequency: int):
 
     wav.write(filename, sample_frequency, result)
 
-record("test.wav", 2, sample_frequency=48000)
+record("test.wav", 5, sample_frequency=48000)
