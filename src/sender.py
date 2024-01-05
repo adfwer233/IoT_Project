@@ -26,7 +26,9 @@ def generate_packets(text: str) -> List[int] :
 
 pack = generate_packets("test")
 
-signal = signal_processing.FSK_modulation(pack, signal_processing.fsk_config) * 1000
+signal_preamble = signal_processing.BPSK_modulation(pack[:10], signal_processing.bpsk_config) * 1000
+signal_header_payload = signal_processing.FSK_modulation(pack[10:], signal_processing.fsk_config) * 1000
+signal = np.concatenate([signal_preamble, signal_header_payload])
 signal = signal.astype(np.int16)
 
 wav.write("sender.wav", 48000, signal)

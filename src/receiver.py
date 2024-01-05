@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from typing import List
 
-t, signal = wav.read("test.wav")
+t, signal = wav.read("sender.wav")
 
 # print(signal.shape)
 
@@ -63,7 +63,10 @@ start_pos = temp.argmax() - len(preamble_signal) // 2
 
 print(start_pos, bit_len, len(signal), start_pos + bit_len * 18)
 
-preamble_header_signal = signal[start_pos + bit_len * 10: start_pos + bit_len * 18]
+preamble_length = 10
+byte_length = 8 // signal_processing.fsk_config.bit_per_symbol
+
+preamble_header_signal = signal[start_pos + bit_len * preamble_length: start_pos + bit_len * (preamble_length + byte_length)]
 
 result = signal_processing.FSK_demodulation(preamble_header_signal, signal_processing.fsk_config)
 
@@ -81,7 +84,7 @@ payload_length = binary_array_to_val(header_binary_array)
 
 print(payload_length)
 
-payload_result = signal_processing.FSK_demodulation(signal[start_pos + bit_len * 18: start_pos + bit_len * 18 + bit_len * (8 * payload_length)], signal_processing.fsk_config)
+payload_result = signal_processing.FSK_demodulation(signal[start_pos + bit_len * (preamble_length + byte_length): start_pos + bit_len * (preamble_length + byte_length) + bit_len * (byte_length * payload_length)], signal_processing.fsk_config)
 
 result_string = ""
 
