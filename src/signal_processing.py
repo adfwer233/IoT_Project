@@ -6,6 +6,18 @@ import matplotlib.pyplot as plt
 import scipy.fft as fft
 from typing import Callable, List
 
+def DFT(signal: np.ndarray, sample_frequency: 48000) :
+    r = 16
+    n = len(signal)
+        
+    fft_signal = fft.fft(signal, r * n, norm="forward")
+    fft_signal = fft.fftshift(fft_signal)
+    fft_signal = np.abs(fft_signal)
+
+    freq = np.linspace(-r * n/2, r * n /2-1, r * n) * sample_frequency / (r * n)
+
+    return freq, fft_signal
+
 @dataclass
 class FSKConfig:
     sampling_freq: int
@@ -24,15 +36,7 @@ def FSK_modulation(data: np.ndarray, config: FSKConfig) -> np.ndarray:
     return signal
 
 def FSK_demodulation(signal: np.ndarray, config: FSKConfig) -> np.ndarray:
-    time_line = np.arange(0, config.symbol_duration, 1 / config.sampling_freq)
-    signal0 = config.amplitude * np.cos(2 * np.pi * config.signal0_freq * time_line)
-    signal1 = config.amplitude * np.cos(2 * np.pi * config.signal1_freq * time_line)
-
-    tmp = np.nonzero(abs(signal) > 0.25)
-
     start, end = 0, len(signal)
-    signal = signal[start: end]
-
     data_length = round((end - start) / config.sampling_freq / config.symbol_duration)
 
     data = []
@@ -40,9 +44,15 @@ def FSK_demodulation(signal: np.ndarray, config: FSKConfig) -> np.ndarray:
         symbol_begin = int(i * config.symbol_duration * config.sampling_freq)
         symbol_end = min(end, symbol_begin + int(config.symbol_duration * config.sampling_freq))
         symbol = signal[symbol_begin: symbol_end]
-        dot0 = np.dot(symbol, signal0)
-        dot1 = np.dot(symbol, signal1)
-        data.append(0 if dot0 > dot1 else 1)
+
+        freq_axis, symbol_frequency_field = DFT(symbol, config.sampling_freq)
+        symbol_frequency_field += symbol_frequency_field[::-1]
+        symbol_frequency_field = symbol_frequency_field[len(symbol_frequency_field) // 2:]
+        freq_axis = freq_axis[len(freq_axis) // 2:]
+
+        freq = freq_axis[np.argmax(symbol_frequency_field)]
+
+        data.append(0 if abs(freq-config.signal0_freq) < abs(freq - config.signal1_freq) else 1)
 
     return data
 
@@ -53,7 +63,7 @@ class BPSKConfig:
     amplitude: float
     symbol_duration: float
 
-bpsk_config = BPSKConfig(48000, 5000, 1, 0.025)
+bpsk_config = BPSKConfig(48000, 7000, 1, 0.025)
 
 def BPSK_modulation(data: np.ndarray, config: BPSKConfig) -> np.ndarray:
     time_line = np.arange(0, config.symbol_duration, 1 / config.sampling_freq)
