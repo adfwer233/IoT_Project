@@ -13,7 +13,8 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="receiver")
-    parser.add_argument('--input',default="MoRWBjhpHBQHKPVSaHHvSKlWEdiTuRYsnYzFjLWipROQKKmktivddPnOGeBYfpzrbvVzPOhePjABPUOrhYnhYzQAxQSdYrRZZEdR")
+    parser.add_argument('--input', default="MoRWBjhpHBQHKPVSaHHvSKlWEdiTuRYsnYzFjLWipROQKKmktivddPnOGeBYfpzrbvVzPOhePjABPUOrhYnhYzQAxQSdYrRZZEdR")
+    parser.add_argument('--length', action="store_true")
     args = parser.parse_args()
     return args
 
@@ -85,7 +86,8 @@ if __name__ == "__main__":
 
     payload_length = binary_array_to_val(header_binary_array)
 
-    payload_length = 100
+    if (args.length):
+        payload_length = len(args.input)
 
     payload_result = signal_processing.FSK_demodulation(signal[start_pos + bit_len * (preamble_length + byte_length): start_pos + bit_len * (preamble_length + byte_length) + bit_len * (byte_length * payload_length)], signal_processing.fsk_config)
 
