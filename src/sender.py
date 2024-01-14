@@ -3,9 +3,19 @@ import scipy.io.wavfile as wav
 import signal_processing
 from typing import List
 
+import argparse   #步骤一
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="sender")
+    parser.add_argument('--input',default="MoRWBjhpHBQHKPVSaHHvSKlWEdiTuRYsnYzFjLWipROQKKmktivddPnOGeBYfpzrbvVzPOhePjABPUOrhYnhYzQAxQSdYrRZZEdR")
+    args = parser.parse_args()
+    return args
+
 def generate_packets(text: str) -> List[int] :
 
-    if (len(text) > 30):
+    print(len(text))
+
+    if (len(text) > 128):
         print("generate_packets: text too long")
         return []
 
@@ -24,11 +34,17 @@ def generate_packets(text: str) -> List[int] :
     
     return np.array(preamble_binary + text_length_binary + binary)
 
-pack = generate_packets("test")
+if __name__ == "__main__":
+    args = parse_args()
 
-signal_preamble = signal_processing.BPSK_modulation(pack[:10], signal_processing.bpsk_config) * 1000
-signal_header_payload = signal_processing.FSK_modulation(pack[10:], signal_processing.fsk_config) * 1000
-signal = np.concatenate([signal_preamble, signal_header_payload])
-signal = signal.astype(np.int16)
+    pack = generate_packets(args.input)
 
-wav.write("sender.wav", 48000, signal)
+    print(pack)
+
+    signal_preamble = signal_processing.BPSK_modulation(pack[:10], signal_processing.bpsk_config) * 1000
+    signal_slience = signal_processing.BPSK_modulation(pack[:1], signal_processing.bpsk_config) * 0
+    signal_header_payload = signal_processing.FSK_modulation(pack[10:], signal_processing.fsk_config) * 1000
+    signal = np.concatenate([signal_preamble, signal_slience, signal_header_payload])
+    signal = signal.astype(np.int16)
+
+    wav.write("sender.wav", 48000, signal)

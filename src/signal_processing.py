@@ -27,7 +27,7 @@ class FSKConfig:
     amplitude: float
     symbol_duration: float
 
-fsk_config = FSKConfig(48000, 3000, 5000, 2, 1, 0.025)
+fsk_config = FSKConfig(48000, 5000, 7000, 1, 1, 0.050)
 
 def bit_freq_map(config: FSKConfig):
     '''
@@ -57,6 +57,24 @@ def FSK_modulation(data: np.ndarray, config: FSKConfig) -> np.ndarray:
     return signal
 
 def FSK_demodulation(signal: np.ndarray, config: FSKConfig) -> np.ndarray:
+    # signal = sig.lfilter(
+    #     *sig.iirfilter(
+    #         1, 5500,
+    #         btype="lowpass",
+    #         fs=config.sampling_freq
+    #     ),
+    #     signal
+    # )
+
+    # signal = sig.lfilter(
+    #     *sig.iirfilter(
+    #         1, 2500,
+    #         btype="highpass",
+    #         fs=config.sampling_freq
+    #     ),
+    #     signal
+    # )
+
     start, end = 0, len(signal)
     data_length = round((end - start) / config.sampling_freq / config.symbol_duration)
 
@@ -75,6 +93,12 @@ def FSK_demodulation(signal: np.ndarray, config: FSKConfig) -> np.ndarray:
 
         freq = freq_axis[np.argmax(symbol_frequency_field)]
 
+        # print(freq, symbol_begin, symbol_end, len(signal))
+
+        # plt.cla()
+        # plt.scatter(freq_axis, symbol_frequency_field)
+        # plt.show()
+
         delta_freq_list = abs(np.array(freq_list) - freq)
         idx = delta_freq_list.argmin()
         for c in bit_list[idx]:
@@ -89,7 +113,7 @@ class BPSKConfig:
     amplitude: float
     symbol_duration: float
 
-bpsk_config = BPSKConfig(48000, 7000, 1, 0.025)
+bpsk_config = BPSKConfig(48000, 7000, 1, 0.050)
 
 def BPSK_modulation(data: np.ndarray, config: BPSKConfig) -> np.ndarray:
     time_line = np.arange(0, config.symbol_duration, 1 / config.sampling_freq)
